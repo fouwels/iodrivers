@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/d2r2/go-i2c"
 	logger "github.com/d2r2/go-logger"
+	"github.com/kaelanfouwels/iodrivers/i2c"
 )
 
 const i2cBus = "1"

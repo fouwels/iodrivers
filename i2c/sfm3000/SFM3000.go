@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/d2r2/go-i2c"
 	"github.com/go-daq/crc8"
+	"github.com/kaelanfouwels/iodrivers/i2c"
 )
 
 const crcPolynomial = 0x31
