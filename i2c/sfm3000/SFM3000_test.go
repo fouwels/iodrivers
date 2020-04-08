@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	logger "github.com/d2r2/go-logger"
 	"github.com/kaelanfouwels/iodrivers/i2c"
 )
 
@@ -17,14 +16,12 @@ var _sfm *SFM3000
 
 func TestMain(m *testing.M) {
 
-	logger.ChangePackageLogLevel("i2c", logger.InfoLevel)
-
-	i2c, err := i2c.NewI2C(i2cAddress, 1)
+	i2c, err := i2c.NewI2C(1)
 	if err != nil {
 		log.Fatalf("Failed to create I2C: %v", err)
 	}
 
-	sfm, err := NewSFM3000(i2c, true)
+	sfm, err := NewSFM3000(i2c, i2cAddress, true, "TESTSENSOR")
 	if err != nil {
 		log.Fatalf("Failed to create SFM3000: %v", err)
 	}

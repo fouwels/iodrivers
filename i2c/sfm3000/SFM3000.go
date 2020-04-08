@@ -19,21 +19,36 @@ type SFM3000 struct {
 	crcTable *crc8.Table
 	readMode bool
 	isAir    bool
+	address  uint8
+	label    string
 }
 
 //NewSFM3000 create a new SFM3000 driver
-func NewSFM3000(i2c *i2c.I2C, isAir bool) (*SFM3000, error) {
+func NewSFM3000(i2c *i2c.I2C, address uint8, isAir bool, label string) (*SFM3000, error) {
 
 	return &SFM3000{
 		i2c:      i2c,
 		readMode: false,
 		crcTable: crc8.MakeTable(crcPolynomial),
 		isAir:    isAir,
+		address:  address,
+		label:    label,
 	}, nil
+}
+
+//LocationString ..
+func (e *SFM3000) LocationString() string {
+	return fmt.Sprintf("%v-0x%v", e.i2c.GetBus(), e.address)
+}
+
+//Label ..
+func (e *SFM3000) Label() string {
+	return e.label
 }
 
 //SoftReset ..
 func (e *SFM3000) SoftReset() error {
+	e.i2c.SetAddr(e.address)
 
 	e.readMode = false
 
@@ -48,6 +63,7 @@ func (e *SFM3000) SoftReset() error {
 
 //GetSerial ..
 func (e *SFM3000) GetSerial() ([4]byte, error) {
+	e.i2c.SetAddr(e.address)
 
 	e.readMode = false
 
@@ -75,7 +91,7 @@ func (e *SFM3000) GetSerial() ([4]byte, error) {
 	return serial, nil
 }
 
-//GetValue Returns data uint16, crc uint8, error
+//GetValue Returns data, crc, error
 func (e *SFM3000) GetValue() (float32, uint8, error) {
 
 	value, crc, err := e.getRaw()
@@ -97,6 +113,7 @@ func (e *SFM3000) GetValue() (float32, uint8, error) {
 //getRaw Returns data uint16, crc uint8, error
 func (e *SFM3000) getRaw() (uint16, uint8, error) {
 
+	e.i2c.SetAddr(e.address)
 	if !(e.readMode) {
 
 		w := []byte{0x10, 00}
