@@ -3,6 +3,7 @@ package sfm3000
 import (
 	"encoding/binary"
 	"fmt"
+	"time"
 
 	"github.com/go-daq/crc8"
 	"github.com/kaelanfouwels/iodrivers/i2c"
@@ -91,27 +92,27 @@ func (e *SFM3000) GetSerial() ([4]byte, error) {
 	return serial, nil
 }
 
-//GetValue Returns data, crc, error
-func (e *SFM3000) GetValue() (float32, uint8, error) {
+//GetValue Returns data, crc, timestamp, error
+func (e *SFM3000) GetValue() (float64, uint8, time.Time, error) {
 
-	value, crc, err := e.getRaw()
+	value, crc, tstamp, err := e.getRaw()
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, tstamp, err
 	}
 
-	var scalefactor float32
+	var scalefactor float64
 	if e.isAir {
 		scalefactor = flowScaleFactorAirN2
 	} else {
 		scalefactor = flowScaleFactorO2
 	}
 
-	flow := (float32(value) - flowOffset) / (scalefactor)
-	return flow, crc, nil
+	flow := (float64(value) - flowOffset) / float64(scalefactor)
+	return flow, crc, tstamp, nil
 }
 
 //getRaw Returns data uint16, crc uint8, error
-func (e *SFM3000) getRaw() (uint16, uint8, error) {
+func (e *SFM3000) getRaw() (uint16, uint8, time.Time, error) {
 
 	e.i2c.SetAddr(e.address)
 	if !(e.readMode) {
@@ -120,7 +121,7 @@ func (e *SFM3000) getRaw() (uint16, uint8, error) {
 
 		_, err := e.i2c.WriteBytes(w)
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to write command: %w", err)
+			return 0, 0, time.Time{}, fmt.Errorf("failed to write command: %w", err)
 		}
 
 		e.readMode = true
@@ -129,17 +130,19 @@ func (e *SFM3000) getRaw() (uint16, uint8, error) {
 	r := make([]byte, 3, 3)
 	_, err := e.i2c.ReadBytes(r)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to read command: %w", err)
+		return 0, 0, time.Time{}, fmt.Errorf("failed to read command: %w", err)
 	}
+
+	timestamp := time.Now()
 
 	dataCRC := byte(crc8.Checksum(r[:2], e.crcTable))
 	sensorCRC := r[2]
 
 	if dataCRC != sensorCRC {
-		return 0, 0, fmt.Errorf("CRC Check failed, got %v, expected %v", sensorCRC, dataCRC)
+		return 0, 0, time.Time{}, fmt.Errorf("CRC Check failed, got %v, expected %v", sensorCRC, dataCRC)
 	}
 
 	data := binary.BigEndian.Uint16(r[:2])
 
-	return data, dataCRC, nil
+	return data, dataCRC, timestamp, nil
 }

@@ -9,22 +9,18 @@ import (
 
 //I2C ..
 type I2C struct {
-	bus  int
-	file *os.File
+	bus             string
+	file            *os.File
+	currrentAddress uint8
 	sync.Mutex
 }
 
 //NewI2C ..
-func NewI2C(bus int) (*I2C, error) {
-	f, err := os.OpenFile(fmt.Sprintf("/dev/i2c-%d", bus), os.O_RDWR, 0600)
+func NewI2C(bus string) (*I2C, error) {
+	f, err := os.OpenFile(bus, os.O_RDWR, 0600)
 	if err != nil {
 		return nil, err
 	}
-
-	// _, _, errNo := syscall.Syscall6(syscall.SYS_IOCTL, f.Fd(), I2C_SLAVE, uintptr(addr), 0, 0, 0)
-	// if errNo != 0 {
-	// 	return nil, fmt.Errorf("Syscall to set address failed: %v", errNo)
-	// }
 
 	v := &I2C{file: f, bus: bus}
 
@@ -36,6 +32,11 @@ func (v *I2C) SetAddr(addr uint8) error {
 	v.Lock()
 	defer v.Unlock()
 
+	//If already on correct address, return
+	if addr == v.currrentAddress {
+		return nil
+	}
+
 	_, _, errNo := syscall.Syscall6(syscall.SYS_IOCTL, v.file.Fd(), I2C_SLAVE, uintptr(addr), 0, 0, 0)
 	if errNo != 0 {
 		return fmt.Errorf("Syscall to set address failed: %v", errNo)
@@ -45,7 +46,7 @@ func (v *I2C) SetAddr(addr uint8) error {
 }
 
 //GetBus ..
-func (v *I2C) GetBus() int {
+func (v *I2C) GetBus() string {
 	return v.bus
 }
 

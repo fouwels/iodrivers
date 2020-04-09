@@ -1,6 +1,8 @@
 package sfm3000
 
 import (
+	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -16,7 +18,7 @@ var _sfm *SFM3000
 
 func TestMain(m *testing.M) {
 
-	i2c, err := i2c.NewI2C(1)
+	i2c, err := i2c.NewI2C("/dev/i2c-1")
 	if err != nil {
 		log.Fatalf("Failed to create I2C: %v", err)
 	}
@@ -57,7 +59,7 @@ func TestGetSerial(t *testing.T) {
 func TestGetRaw(t *testing.T) {
 
 	for i := 0; i < 6; i++ {
-		value, crc, err := _sfm.getRaw()
+		value, crc, _, err := _sfm.getRaw()
 		if err != nil {
 			t.Fatalf("[%v] Failed to get value: %v", i, err)
 		}
@@ -68,10 +70,54 @@ func TestGetRaw(t *testing.T) {
 func TestGetValue(t *testing.T) {
 
 	for i := 0; i < 6; i++ {
-		value, crc, err := _sfm.GetValue()
+		value, crc, _, err := _sfm.GetValue()
 		if err != nil {
 			t.Fatalf("[%v] Failed to get value: %v", i, err)
 		}
 		t.Logf("[%v] Value: %v CRC: %v", i, value, crc)
 	}
+}
+
+func TestCaptureDatalog(t *testing.T) {
+
+	const fileName string = "capture_datalog.csv"
+	const sampleRate int = 1000
+
+	f, err := os.Create(fileName)
+	defer f.Close()
+	if err != nil {
+		t.Fatalf("Failed to crete+open file: %v", err)
+	}
+
+	startTime := time.Now()
+
+	cs := csv.NewWriter(f)
+	defer cs.Flush()
+
+	lines := [][]string{}
+
+	t.Logf("Starting datalog for 10 seconds at %v", sampleRate)
+	for i := 0; i < 10*sampleRate; i++ {
+
+		value, _, timestamp, err := _sfm.GetValue()
+		if err != nil {
+			t.Fatalf("[%v] Failed to get value: %v", i, err)
+		}
+
+		//Save a offset to force go to use monotonic time...
+		line := []string{timestamp.Sub(startTime).String(), fmt.Sprintf("%v", value)}
+
+		lines = append(lines, line)
+		time.Sleep((1 * time.Second) / time.Duration(sampleRate))
+	}
+
+	t.Logf("Captured %v records", len(lines))
+
+	cs.WriteAll(lines)
+	cs.Flush()
+	if err := cs.Error(); err != nil {
+		t.Fatalf("Failed to flush: %v", err)
+	}
+
+	t.Logf("Finished datalog")
 }

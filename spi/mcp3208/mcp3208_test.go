@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Failed to connect SPI: %v", err)
 	}
 
-	mcp, err := NewMcp3208(conn)
+	mcp, err := NewMcp3208(conn, "ADC1")
 	if err != nil {
 		log.Fatalf("Failed to create MCP: %v", err)
 	}
@@ -52,13 +52,13 @@ func TestMain(m *testing.M) {
 
 func TestRead(t *testing.T) {
 
-	vals, err := _mcp.GetValues(0, 8)
+	vals, tstamp, err := _mcp.GetValues(0, 8)
 	if err != nil {
 		log.Fatalf("Failed: %v", err)
 	}
 
-	for _, v := range vals {
-		log.Printf("%v", float64(v)*(1/math.Pow(2, 16)))
+	for i, v := range vals {
+		log.Printf("%v [%v] %v", tstamp, i, float64(v)*(1/math.Pow(2, 16)))
 	}
 }
 
