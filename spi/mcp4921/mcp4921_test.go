@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Failed to connect SPI: %v", err)
 	}
 
-	mcp, err := mcp4921.NewMcp4921(conn, "DAC1", mcp4921.EnumBufferedTrue, mcp4921.EnumOutputGain1x, mcp4921.EnumShutdownModeHighImpedence)
+	mcp, err := mcp4921.NewMcp4921(conn, "DAC1", mcp4921.EnumBufferedTrue, mcp4921.EnumOutputGain1x, mcp4921.EnumShutdownModeActive)
 	if err != nil {
 		log.Fatalf("Failed to create DAC: %v", err)
 	}
