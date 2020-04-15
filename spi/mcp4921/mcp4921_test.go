@@ -13,7 +13,7 @@ import (
 	"periph.io/x/periph/host"
 )
 
-const spiDevice = "/dev/spidev0.2"
+const spiDevice = "/dev/spidev0.0"
 
 var _mcp *mcp4921.Mcp4921
 

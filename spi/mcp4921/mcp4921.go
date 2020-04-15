@@ -77,10 +77,10 @@ func (e *Mcp4921) Write(value uint16) error {
 		buffer = buffer | (1 << 14)
 	}
 
-	tx := []byte{}
+	tx := make([]byte, 2)
 	binary.LittleEndian.PutUint16(tx, buffer)
 
-	rx := []byte{}
+	rx := make([]byte, 2)
 	err := e.spi.Tx(tx, rx)
 
 	if err != nil {
