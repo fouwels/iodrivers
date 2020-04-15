@@ -56,6 +56,12 @@ func NewMcp4921(spi spi.Conn, label string, buffered EnumBuffered, outputGain En
 	return &mc, nil
 }
 
+//Label ..
+func (e *Mcp4921) Label() string {
+	return e.label
+}
+
+//Write ..
 func (e *Mcp4921) Write(value uint16) error {
 
 	if value >= 4096 {

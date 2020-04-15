@@ -8,7 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaelanfouwels/iodrivers/i2c"
+	"periph.io/x/periph/conn/i2c"
+	"periph.io/x/periph/conn/i2c/i2creg"
+	"periph.io/x/periph/host"
 )
 
 const i2cBus = "1"
@@ -18,12 +20,22 @@ var _sfm *SFM3000
 
 func TestMain(m *testing.M) {
 
-	i2c, err := i2c.NewI2C("/dev/i2c-1")
+	_, err := host.Init()
 	if err != nil {
-		log.Fatalf("Failed to create I2C: %v", err)
+		log.Fatalf("Failed to init: %v", err)
 	}
 
-	sfm, err := NewSFM3000(i2c, i2cAddress, true, "TESTSENSOR")
+	bus, err := i2creg.Open(i2cBus)
+	if err != nil {
+		log.Fatalf("Failed to create SPI: %v", err)
+	}
+
+	dev := i2c.Dev{
+		Bus:  bus,
+		Addr: i2cAddress,
+	}
+
+	sfm, err := NewSFM3000(&dev, i2cAddress, true, "TESTSENSOR")
 	if err != nil {
 		log.Fatalf("Failed to create SFM3000: %v", err)
 	}
@@ -32,7 +44,7 @@ func TestMain(m *testing.M) {
 
 	result := m.Run()
 
-	err = i2c.Close()
+	err = bus.Close()
 	if err != nil {
 		log.Fatalf("Failed to close I2C: %v", err)
 	}

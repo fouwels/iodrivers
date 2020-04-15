@@ -52,13 +52,15 @@ func TestMain(m *testing.M) {
 
 func TestRead(t *testing.T) {
 
-	vals, tstamp, err := _mcp.GetValues(0, 8)
-	if err != nil {
-		log.Fatalf("Failed: %v", err)
-	}
+	for i := 0; i < 5; i++ {
+		vals, tstamp, err := _mcp.GetValues(0, 8)
+		if err != nil {
+			log.Fatalf("Failed: %v", err)
+		}
 
-	for i, v := range vals {
-		log.Printf("%v [%v] %v", tstamp, i, float64(v)*(1/math.Pow(2, 16)))
+		for i, v := range vals {
+			log.Printf("%v [%v] %v", tstamp, i, float64(v)*(1/math.Pow(2, 16)))
+		}
 	}
 }
 

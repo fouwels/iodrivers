@@ -62,7 +62,7 @@ func TestWrite(t *testing.T) {
 func TestVolume(t *testing.T) {
 
 	duration := 1000 * time.Millisecond
-	percentage := 10.00
+	percentage := 14.00
 
 	timer := time.NewTimer(duration)
 
