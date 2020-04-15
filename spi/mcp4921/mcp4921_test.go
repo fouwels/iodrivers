@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"periph.io/x/periph/conn/physic"
 
@@ -52,10 +53,31 @@ func TestMain(m *testing.M) {
 
 func TestWrite(t *testing.T) {
 
-	err := _mcp.Write(4096 / 2) //2^12/2
+	err := _mcp.Write((4096 / 100) * 14) //2^12/2
 	if err != nil {
 		log.Fatalf("Failed: %v", err)
 	}
+}
+
+func TestVolume(t *testing.T) {
+
+	duration := 1000 * time.Millisecond
+	percentage := 10.00
+
+	timer := time.NewTimer(duration)
+
+	err := _mcp.Write(uint16((4096.00 / 100.00) * percentage))
+	if err != nil {
+		log.Fatalf("Failed to open: %v", err)
+	}
+
+	<-timer.C
+
+	err = _mcp.Write(0)
+	if err != nil {
+		log.Fatalf("Failed to close: %v", err)
+	}
+
 }
 
 func TestWriteOOR(t *testing.T) {
