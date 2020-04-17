@@ -111,7 +111,7 @@ func (e *SFM3000) getRaw() (uint16, uint8, time.Time, error) {
 			return 0, 0, time.Time{}, fmt.Errorf("failed to write command: %w", err)
 		}
 
-		time.Sleep(50 * time.Millisecond) // Wait for sensor to change mode
+		time.Sleep(200 * time.Millisecond) // Wait for sensor to change mode
 
 		e.readMode = true
 	}
